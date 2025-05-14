@@ -1,4 +1,5 @@
 # Complete Analysis Dashboard
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -11,7 +12,7 @@ st.set_page_config(page_title="Flipkart Headphones Deep Dive", layout="wide")
 # Load and Preprocess Data
 @st.cache_data
 def load_data():
-    df = pd.read_csv("C:\\Users\\sanyam mahajan\\Documents\\Mpr\\scraping\\data_eda.csv")
+    df = pd.read_csv(os.path.join("scraping", "data_eda.csv"))
     
     # Clean Price Range
     df['Price Range'] = df['Price Range'].str.replace('â_x0080_x0093', '-', regex=True)
