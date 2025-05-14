@@ -488,57 +488,114 @@ with st.expander("Predict Rating Category"):
         
         st.success(f"Predicted Rating Category: *{prediction}* (Confidence: {probability:.0%})")
 
-# 3. Product Clustering (Unsupervised Learning)
+#3. Product Clustering (Unsupervised Learning)
 st.subheader("🔍 Product Clustering Analysis")
 with st.expander("Explore Product Segments"):
     from sklearn.cluster import KMeans
     from sklearn.preprocessing import StandardScaler
 
-    # Prepare data
-    cluster_df = filtered_df[['Price', 'Rating', 'Discount %', 'Number of Ratings']]
+    # Prepare data with product names
+    cluster_df = filtered_df[['Product Name', 'Price', 'Rating', 'Discount %', 'Number of Ratings']]
 
     if cluster_df.shape[0] < 2:
         st.warning(f"⚠️ Not enough products ({cluster_df.shape[0]}) to perform clustering! Need at least 2.")
     else:
         # Normalization
         scaler = StandardScaler()
-        scaled_data = scaler.fit_transform(cluster_df)
+        scaled_data = scaler.fit_transform(cluster_df[['Price', 'Rating', 'Discount %', 'Number of Ratings']])
 
-        # Determine optimal clusters (Elbow Method)
+        # Elbow Method Explanation
+        st.markdown("""
+        **How to choose clusters?**
+        - Look for the 'elbow' point where the line bends
+        - After this point, adding more clusters doesn't help much
+        """)
+        
+        # Determine optimal clusters
         wcss = []
-        for i in range(1, min(6, cluster_df.shape[0] + 1)):  # Max clusters = number of samples
-            kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42, n_init=10)
+        max_clusters = min(10, cluster_df.shape[0])
+        for i in range(1, max_clusters):
+            kmeans = KMeans(n_clusters=i, random_state=42, n_init=10)
             kmeans.fit(scaled_data)
             wcss.append(kmeans.inertia_)
 
-        # Elbow method visualization
+        # Elbow plot
         fig1 = px.line(
-            x=range(1, len(wcss) + 1),
+            x=range(1, len(wcss)+1), 
             y=wcss,
-            title='Elbow Method for Optimal Clusters',
-            labels={'x': 'Number of Clusters', 'y': 'WCSS'}
+            title='Finding the Optimal Number of Clusters',
+            labels={'x': 'Number of Clusters', 'y': 'Compactness Score'},
+            markers=True
         )
         st.plotly_chart(fig1)
 
-        # Final clustering
-        max_clusters = min(5, cluster_df.shape[0])  # can't have more clusters than points
-        n_clusters = st.slider("Select Number of Clusters", 2, max_clusters, min(3, max_clusters))
+        # Cluster selection
+        n_clusters = st.slider("Select Number of Clusters", 
+                             2, max(2, max_clusters-1), 
+                             value=min(3, max_clusters-1))
+        
         if cluster_df.shape[0] >= n_clusters:
+            # Perform clustering
             kmeans = KMeans(n_clusters=n_clusters, random_state=42)
             clusters = kmeans.fit_predict(scaled_data)
+            cluster_df['Cluster'] = clusters.astype(str)  # Convert to string for categorical color
 
-            # Visualize clusters
-            cluster_df['Cluster'] = clusters
-            fig2 = px.scatter_matrix(
+            # Interactive 2D Scatter Plot
+            st.markdown("### 📊 Product Cluster Visualization")
+            col1, col2 = st.columns(2)
+            with col1:
+                x_axis = st.selectbox("X-Axis Feature", 
+                                    ['Price', 'Rating', 'Discount %', 'Number of Ratings'], 
+                                    index=0)
+            with col2:
+                y_axis = st.selectbox("Y-Axis Feature", 
+                                    ['Rating', 'Price', 'Discount %', 'Number of Ratings'], 
+                                    index=0)
+
+            fig2 = px.scatter(
                 cluster_df,
-                dimensions=['Price', 'Rating', 'Discount %', 'Number of Ratings'],
+                x=x_axis,
+                y=y_axis,
                 color='Cluster',
-                title="Product Cluster Analysis"
+                hover_name='Product Name',
+                title=f"Product Clusters ({x_axis} vs {y_axis})",
+                labels={'Cluster': 'Product Group'},
+                color_discrete_sequence=px.colors.qualitative.Bold
             )
             st.plotly_chart(fig2)
+
+            # Cluster Summary Table
+            st.markdown("### 📝 Cluster Characteristics")
+            cluster_summary = cluster_df.groupby('Cluster').agg({
+                'Price': 'mean',
+                'Rating': 'mean',
+                'Discount %': 'mean',
+                'Number of Ratings': 'mean',
+                'Product Name': 'count'
+            }).rename(columns={'Product Name': 'Count'}).reset_index()
+            
+            # Format numbers
+            cluster_summary['Price'] = cluster_summary['Price'].round(2)
+            cluster_summary['Rating'] = cluster_summary['Rating'].round(1)
+            cluster_summary['Discount %'] = cluster_summary['Discount %'].round(1)
+            cluster_summary['Number of Ratings'] = cluster_summary['Number of Ratings'].astype(int)
+            
+            # Display summary
+            st.dataframe(
+                cluster_summary.style.highlight_max(subset=['Count'], color='#90EE90'),
+                use_container_width=True
+            )
+
+            # Interpretation Guide
+            st.markdown("""
+            **How to interpret:**
+            - Each color represents a product group
+            - Points close together are similar products
+            - Check the summary table for group characteristics
+            - Hover over points to see product details
+            """)
         else:
             st.warning(f"⚠️ Cannot create {n_clusters} clusters from {cluster_df.shape[0]} products!")
-
 
 # 4. Discount Effectiveness Predictor
 st.subheader("🎯 Discount Impact Analyzer")
