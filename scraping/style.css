@@ -1,0 +1,85 @@
+/* Main background */
+.stApp {
+    background-color: #0E1117;
+    color: #FAFAFA;
+}
+
+/* Sidebar */
+.css-1l02zno {
+    background-color: #1E1E1E !important;
+    border-right: 1px solid #333;
+}
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+    color: #FF4B4B !important;
+}
+
+/* Dataframes */
+.stDataFrame {
+    background-color: #1E1E1E !important;
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 10px;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background-color: #1E1E1E;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    background-color: #2E2E2E;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: #FF4B4B !important;
+    color: white !important;
+}
+
+/* Buttons */
+.stButton>button {
+    background-color: #FF4B4B;
+    color: white;
+    border-radius: 8px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.stButton>button:hover {
+    background-color: #FF6B6B;
+    border-color: #FF6B6B;
+}
+
+/* Sliders */
+.stSlider [data-testid="stThumbValue"] {
+    color: #FF4B4B;
+}
+
+/* Select boxes */
+.stSelectbox [data-testid="stMarkdownContainer"] {
+    color: white;
+}
+
+/* Multi-select */
+.stMultiSelect [data-testid="stMarkdownContainer"] {
+    color: white;
+}
+
+/* Text input */
+.stTextInput>div>div>input {
+    color: white;
+    background-color: #1E1E1E;
+}
+
+/* Number input */
+.stNumberInput>div>div>input {
+    color: white;
+    background-color: #1E1E1E;
+}
